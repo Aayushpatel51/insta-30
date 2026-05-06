@@ -10,8 +10,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
         .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
-        .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer border border-transparent; }
-        .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20; }
+        .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:text-white hover:bg-slate-800/40 cursor-pointer border border-transparent relative overflow-hidden; }
+        .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]; }
+        .sidebar-active::before { content: ''; @apply absolute left-0 top-0 bottom-0 w-1 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]; }
+        .sidebar-item i { @apply transition-transform duration-300; }
+        .sidebar-item:hover i { @apply scale-110; }
         .card-hover { @apply transition-all hover:border-blue-500/30 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)]; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
@@ -39,12 +42,25 @@
             <h1 class="text-lg font-bold tracking-tight">Meeting<span class="text-blue-500">Flow</span></h1>
         </div>
 
-        <nav id="sidebar-nav" class="flex flex-col gap-2">
-            <div onclick="setSidebarActive(this)" class="sidebar-item sidebar-active"><i class="fa-solid fa-house-chimney text-sm"></i> Dashboard</div>
-            <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-folder-open text-sm"></i> Projects</div>
-            <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-plug text-sm"></i> Integrations</div>
-            <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-chart-line text-sm"></i> Analytics</div>
-        </nav>
+        <div class="flex flex-col gap-6">
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-4">Main Menu</p>
+                <nav id="sidebar-nav" class="flex flex-col gap-1">
+                    <div onclick="setSidebarActive(this)" class="sidebar-item sidebar-active"><i class="fa-solid fa-house-chimney text-sm text-blue-400"></i> Dashboard</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-folder-open text-sm text-slate-400"></i> Projects</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-plug text-sm text-slate-400"></i> Integrations</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-chart-line text-sm text-slate-400"></i> Analytics</div>
+                </nav>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-4">Workspace</p>
+                <nav class="flex flex-col gap-1">
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-users text-sm text-slate-400"></i> Team</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-database text-sm text-slate-400"></i> Databases</div>
+                </nav>
+            </div>
+        </div>
 
         <div class="mt-auto pt-8 border-t border-slate-800">
             <div class="flex items-center gap-3 mb-6 p-2 rounded-xl hover:bg-slate-800/30 transition-colors cursor-pointer group">
@@ -149,8 +165,19 @@
         // --- UI Interactions ---
 
         function setSidebarActive(element) {
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('sidebar-active'));
+            const items = document.querySelectorAll('.sidebar-item');
+            items.forEach(el => {
+                el.classList.remove('sidebar-active');
+                const icon = el.querySelector('i');
+                icon.classList.remove('text-blue-400');
+                icon.classList.add('text-slate-400');
+            });
+
             element.classList.add('sidebar-active');
+            const activeIcon = element.querySelector('i');
+            activeIcon.classList.remove('text-slate-400');
+            activeIcon.classList.add('text-blue-400');
+
             showToast(`Switched to ${element.innerText.trim()}`);
         }
 

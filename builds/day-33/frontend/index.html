@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DispatchFlow | Fleet Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s; }
+        .dark { background-color: #020617; color: #f8fafc; }
+        .dark .bg-sidebar { background-color: #0b1120; border-color: #1e293b; }
+        .dark .bg-card { background-color: #0f172a; border-color: #1e293b; }
+        .bg-sidebar { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
+        .bg-card { background-color: #ffffff; border: 1px solid #e2e8f0; }
+
+        #map { height: 100%; width: 100%; border-radius: 1.5rem; z-index: 1; }
+        .dark .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+
+        .status-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tech-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .tech-card:hover { transform: translateX(8px); }
+        .tech-card.active { border-left: 4px solid #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
+
+        .leaflet-popup-content-wrapper { border-radius: 12px; font-family: inherit; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen overflow-hidden">
+    <div id="app" class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-80 bg-sidebar flex flex-col z-20 shadow-2xl relative">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/40 rotate-3">
+                        <i class="fas fa-route text-lg"></i>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight">Dispatch<span class="text-indigo-600">Flow</span></span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-3">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Fleet</div>
+                        <div class="flex -space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-green-500 border-2 border-white dark:border-slate-900"></div>
+                            <div class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white dark:border-slate-900"></div>
+                            <div class="w-6 h-6 rounded-full bg-yellow-500 border-2 border-white dark:border-slate-900"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <!-- Technicians Section -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Live Technicians</h3>
+                    <div id="tech-list" class="space-y-2">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+
+                <!-- Unassigned Jobs Section -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Critical Jobs</h3>
+                    <div id="job-list" class="space-y-2">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <button onclick="toggleTheme()" class="w-full flex items-center justify-center space-x-2 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all font-bold text-xs uppercase tracking-widest shadow-sm">
+                    <i class="fas fa-adjust"></i>
+                    <span>Switch Theme</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main class="flex-1 relative flex flex-col p-6">
+            <!-- Floating Header -->
+            <div class="absolute top-10 left-12 right-12 z-10 flex justify-between pointer-events-none">
+                <div class="pointer-events-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-6 py-4 rounded-3xl shadow-2xl shadow-indigo-500/10 border border-white/20 flex items-center space-x-8">
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Average Response</div>
+                        <div class="text-xl font-black text-indigo-600">14.2m</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Active Routes</div>
+                        <div class="text-xl font-black">28</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Fuel Efficiency</div>
+                        <div class="text-xl font-black text-green-500">+12%</div>
+                    </div>
+                </div>
+
+                <div class="pointer-events-auto flex space-x-3">
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full font-bold shadow-xl shadow-indigo-500/30 transition-all transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i> Create Dispatch
+                    </button>
+                </div>
+            </div>
+
+            <div id="map" class="shadow-2xl"></div>
+
+            <!-- Toast UI -->
+            <div id="toast" class="absolute bottom-10 right-10 z-20 hidden transform translate-y-20 opacity-0 transition-all duration-500">
+                <div class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 border border-slate-700">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-xs">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Dispatch Success</div>
+                        <div id="toast-msg" class="text-sm font-medium">Technician en route to client location.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let map, markers = {}, techMarkers = {};
+        let fleetData = { technicians: [], jobs: [] };
+
+        async function initMap() {
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([40.7306, -73.9352], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            await loadData();
+            simulateMovement();
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('http://localhost:8000/api/fleet');
+                fleetData = await res.json();
+            } catch (e) {
+                console.warn("Using local mock data");
+                fleetData = {
+                    technicians: [
+                        {id: 1, name: "Marcus Rivera", status: "Busy", lat: 40.7128, lng: -74.0060, specialty: "Electrical", battery: 85},
+                        {id: 2, name: "Sarah Chen", status: "Idle", lat: 40.7282, lng: -73.9942, specialty: "HVAC", battery: 92},
+                        {id: 3, name: "Elena Rodriguez", status: "En Route", lat: 40.7589, lng: -73.9851, specialty: "Plumbing", battery: 45}
+                    ],
+                    jobs: [
+                        {id: 101, title: "AC Repair", customer: "Global Corp", lat: 40.7484, lng: -73.9857, priority: "High"},
+                        {id: 102, title: "Wiring Fault", customer: "Design Studio", lat: 40.7061, lng: -74.0092, priority: "Medium"}
+                    ]
+                };
+            }
+            renderFleet();
+        }
+
+        function renderFleet() {
+            const tList = document.getElementById('tech-list');
+            const jList = document.getElementById('job-list');
+            tList.innerHTML = ''; jList.innerHTML = '';
+
+            // Clear old markers
+            Object.values(techMarkers).forEach(m => map.removeLayer(m));
+
+            fleetData.technicians.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = "tech-card bg-card p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between";
+                card.onclick = () => map.flyTo([tech.lat, tech.lng], 15);
+
+                const statusColor = tech.status === 'Idle' ? 'bg-green-100 text-green-700' : tech.status === 'Busy' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700';
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <div class="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center font-bold">
+                                ${tech.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
+                                <div class="w-2.5 h-2.5 rounded-full ${tech.status === 'Idle' ? 'bg-green-500' : 'bg-amber-500'}"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold">${tech.name}</div>
+                            <div class="text-[10px] text-slate-400 font-medium tracking-wide">${tech.specialty}</div>
+                        </div>
+                    </div>
+                    <span class="status-badge ${statusColor}">${tech.status}</span>
+                `;
+                tList.appendChild(card);
+
+                // Add Map Marker
+                const icon = L.divIcon({
+                    html: `<div class="w-8 h-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center font-bold text-white text-[10px]" style="background: ${tech.status === 'Idle' ? '#10b981' : '#3b82f6'}">${tech.name[0]}</div>`,
+                    className: '',
+                    iconSize: [32, 32]
+                });
+                techMarkers[tech.id] = L.marker([tech.lat, tech.lng], {icon}).addTo(map)
+                    .bindPopup(`<b>${tech.name}</b><br>${tech.status}`);
+            });
+
+            fleetData.jobs.forEach(job => {
+                const card = document.createElement('div');
+                card.className = "bg-card p-4 rounded-2xl border-l-4 ${job.priority === 'High' ? 'border-l-red-500' : 'border-l-indigo-500'} border border-slate-100 dark:border-slate-800 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-sm font-bold">${job.title}</div>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-400">${job.priority} Priority</span>
+                    </div>
+                    <div class="text-xs text-slate-500 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2"></i> ${job.customer}
+                    </div>
+                    <button onclick="dispatchJob(${job.id})" class="w-full mt-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">
+                        Assign Nearest
+                    </button>
+                `;
+                jList.appendChild(card);
+
+                // Job Marker
+                L.circleMarker([job.lat, job.lng], {
+                    radius: 8,
+                    fillColor: job.priority === 'High' ? '#ef4444' : '#6366f1',
+                    color: "#fff",
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 1
+                }).addTo(map).bindPopup(`<b>${job.title}</b><br>${job.customer}`);
+            });
+        }
+
+        async function dispatchJob(jobId) {
+            const idleTech = fleetData.technicians.find(t => t.status === 'Idle');
+            if (!idleTech) return alert("No technicians available!");
+
+            try {
+                const res = await fetch(`http://localhost:8000/api/dispatch/${idleTech.id}/${jobId}`, {method: 'POST'});
+                const result = await res.json();
+
+                showToast(result.message);
+                idleTech.status = 'En Route';
+                renderFleet();
+            } catch (e) {
+                showToast(`Mock Dispatch: ${idleTech.name} assigned to Job ${jobId}`);
+                idleTech.status = 'En Route';
+                renderFleet();
+            }
+        }
+
+        function simulateMovement() {
+            setInterval(() => {
+                fleetData.technicians.forEach(t => {
+                    if (t.status === 'En Route' || t.status === 'Busy') {
+                        t.lat += (Math.random() - 0.5) * 0.001;
+                        t.lng += (Math.random() - 0.5) * 0.001;
+                        if (techMarkers[t.id]) {
+                            techMarkers[t.id].setLatLng([t.lat, t.lng]);
+                        }
+                    }
+                });
+            }, 3000);
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            }, 100);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 4000);
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>

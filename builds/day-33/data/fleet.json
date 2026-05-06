@@ -1,0 +1,11 @@
+{
+  "technicians": [
+    {"id": 1, "name": "Marcus Rivera", "status": "Busy", "lat": 40.7128, "lng": -74.0060, "specialty": "Electrical", "battery": 85},
+    {"id": 2, "name": "Sarah Chen", "status": "Idle", "lat": 40.7282, "lng": -73.9942, "specialty": "HVAC", "battery": 92},
+    {"id": 3, "name": "Elena Rodriguez", "status": "En Route", "lat": 40.7589, "lng": -73.9851, "specialty": "Plumbing", "battery": 45}
+  ],
+  "jobs": [
+    {"id": 101, "title": "AC Repair", "customer": "Global Corp", "lat": 40.7484, "lng": -73.9857, "priority": "High"},
+    {"id": 102, "title": "Wiring Fault", "customer": "Design Studio", "lat": 40.7061, "lng": -74.0092, "priority": "Medium"}
+  ]
+}

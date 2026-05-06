@@ -25,20 +25,23 @@ async def verify_themes_and_tabs():
             await page.goto("http://localhost:8000")
             await page.wait_for_selector("aside")
 
+            # Ensure verification directory exists
+            os.makedirs("verification", exist_ok=True)
+
             # 1. Capture Dark Mode (Default)
-            await page.screenshot(path="/home/jules/verification/dark_mode.png")
+            await page.screenshot(path="verification/dark_mode.png")
             print("Dark mode screenshot saved.")
 
             # 2. Toggle to Light Mode
             await page.click("#theme-icon")
             await asyncio.sleep(1)
-            await page.screenshot(path="/home/jules/verification/light_mode.png")
+            await page.screenshot(path="verification/light_mode.png")
             print("Light mode screenshot saved.")
 
             # 3. Switch Tabs (Click 'Projects')
             await page.click("div.sidebar-item:has-text('Projects')")
             await asyncio.sleep(1)
-            await page.screenshot(path="/home/jules/verification/tab_projects_light.png")
+            await page.screenshot(path="verification/tab_projects_light.png")
             print("Projects tab (Light) screenshot saved.")
 
         except Exception as e:

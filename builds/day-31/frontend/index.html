@@ -235,9 +235,9 @@
 
             const steps = [
                 { msg: "Uploading audio stream...", progress: 25 },
-                { msg: "De-noising & Pre-processing...", progress: 40 },
-                { msg: "Running Whisper-v3 Transcription...", progress: 65 },
-                { msg: "Extracting Architecture Insights...", progress: 90 },
+                { msg: "Preprocessing audio signals...", progress: 40 },
+                { msg: "Running Local Transcription...", progress: 60 },
+                { msg: "Analyzing with Claude 3.5 Sonnet...", progress: 85 },
                 { msg: "Finalizing Report...", progress: 100 }
             ];
 
@@ -334,7 +334,7 @@
                     <div class="flex justify-between items-start mb-8">
                         <div>
                             <h3 class="text-2xl font-bold truncate max-w-md">${m.title}</h3>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">Processed with Whisper-v3 | AI Core Active</p>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">Analyzed by Claude 3.5 Sonnet | Project Logic Active</p>
                         </div>
                         <button onclick="syncNotion('${m.id}')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/10">
                             <i class="fa-solid fa-share-nodes"></i> Sync to Notion

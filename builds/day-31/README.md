@@ -12,12 +12,12 @@ An automated pipeline that takes audio from Zoom/Teams meetings, transcribes it 
 
 ## 📸 Instagram Content Guide
 
-### Reel Idea: "Stop Taking Notes Manually"
-1. **Hook (0-2s):** Text overlay: "POV: You're a Senior Engineer who hates manual notes." Show yourself (faceless) closing a physical notebook.
-2. **The Problem (2-5s):** Record a Zoom screen with 3+ people talking. Text: "1-hour meeting = 30 mins of manual documentation."
-3. **The Solution (5-12s):** Fast-cut screen recording of running `python app.py`. Show the terminal scrolling through the transcription and the "✅ Task Extracted" logs.
-4. **The Value (12-15s):** Show the Notion board instantly populated with the tasks. Text: "Save 5 hours/week on admin."
-5. **CTA:** "DM 'BUILD' to automate your workflow."
+### Reel Idea: "The Future of Meetings" (High Visual Impact)
+1. **Hook (0-2s):** Start with the **Live Transcript** typing out in real-time. Text overlay: "POV: Your meetings write themselves."
+2. **The Reveal (2-6s):** Pan across the **Intelligent Summary** appearing. Use a "Swoosh" sound effect. Text: "GPT-4o summarized 60 mins into 3 sentences."
+3. **The 'Senior' Edge (6-10s):** Zoom in on the **Action Items** being extracted. Point out the "Speaker Diarization" architecture note.
+4. **The Value (10-15s):** Show the "Export to Notion" button being clicked. Text: "80% less workload. More time for deep work."
+5. **CTA:** "DM 'BUILD' for the source code."
 
 ### Carousel Idea: "How I Built a Meeting-to-Notion Pipeline"
 - **Slide 1:** Hook: "Meeting Minutes on Autopilot (Senior Architect Level)"

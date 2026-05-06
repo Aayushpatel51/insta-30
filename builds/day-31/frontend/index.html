@@ -13,8 +13,8 @@
         .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:text-white hover:bg-slate-800/40 cursor-pointer border border-transparent relative overflow-hidden; }
         .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]; }
         .sidebar-active::before { content: ''; @apply absolute left-0 top-0 bottom-0 w-1 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]; }
-        .sidebar-item i { @apply transition-transform duration-300; }
-        .sidebar-item:hover i { @apply scale-110; }
+        .sidebar-item i { @apply transition-all duration-300; }
+        .sidebar-item:hover i { @apply scale-110 text-blue-400/80; }
         .card-hover { @apply transition-all hover:border-blue-500/30 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)]; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
@@ -63,6 +63,18 @@
         </div>
 
         <div class="mt-auto pt-8 border-t border-slate-800">
+            <!-- Resource Usage Widget -->
+            <div class="mb-6 p-4 rounded-2xl bg-slate-900/50 border border-slate-800/50">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Credits</span>
+                    <span class="text-[10px] font-bold text-blue-400">84%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-2">
+                    <div class="h-full bg-blue-500 w-[84%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.4)]"></div>
+                </div>
+                <p class="text-[9px] text-slate-500 leading-tight">Next reset in <span class="text-slate-300">12 days</span></p>
+            </div>
+
             <div class="flex items-center gap-3 mb-6 p-2 rounded-xl hover:bg-slate-800/30 transition-colors cursor-pointer group">
                 <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-blue-400 group-hover:border-blue-500/50 transition-colors">SE</div>
                 <div>
@@ -212,38 +224,73 @@
             document.getElementById('file-size').innerText = `${(file.size / (1024 * 1024)).toFixed(1)} MB • READY FOR ANALYSIS`;
             document.getElementById('file-info').classList.remove('hidden');
 
-            processNewMeeting(file.name);
+            processNewMeeting(file);
         });
 
-        async function processNewMeeting(title) {
+        async function processNewMeeting(file) {
             const modal = document.getElementById('processing-modal');
             const status = document.getElementById('processing-status');
             const bar = document.getElementById('progress-bar');
             modal.classList.remove('hidden');
 
             const steps = [
-                { msg: "De-noising audio stream...", progress: 25 },
-                { msg: "Running Speaker Diarization...", progress: 50 },
-                { msg: "Generating MVP Roadmap...", progress: 75 },
-                { msg: "Syncing to SaaS ecosystem...", progress: 100 }
+                { msg: "Uploading audio stream...", progress: 25 },
+                { msg: "De-noising & Pre-processing...", progress: 40 },
+                { msg: "Running Whisper-v3 Transcription...", progress: 65 },
+                { msg: "Extracting Architecture Insights...", progress: 90 },
+                { msg: "Finalizing Report...", progress: 100 }
             ];
 
-            for (let step of steps) {
-                status.innerText = step.msg;
-                bar.style.width = `${step.progress}%`;
-                await new Promise(r => setTimeout(r, 1000));
+            // Start a slower background animation for the bar
+            let currentProgress = 0;
+            const progressInterval = setInterval(() => {
+                if (currentProgress < 95) {
+                    currentProgress += 1;
+                    bar.style.width = `${currentProgress}%`;
+                }
+            }, 200);
+
+            // Display messages
+            (async () => {
+                for (let step of steps) {
+                    status.innerText = step.msg;
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+            })();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name);
+
+            try {
+                const res = await fetch(`${API_URL}/api/process-meeting`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Processing failed");
+
+                const meeting = await res.json();
+
+                clearInterval(progressInterval);
+                bar.style.width = '100%';
+                status.innerText = "Processing Complete!";
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.getElementById('file-info').classList.add('hidden');
+                    bar.style.width = '0%';
+                    fetchMeetings();
+                    showDetail(meeting.id);
+                    showToast("SaaS Analysis Complete!");
+                }, 800);
+
+            } catch (err) {
+                clearInterval(progressInterval);
+                modal.classList.add('hidden');
+                showToast("Error processing audio.", "error");
+                console.error(err);
             }
-
-            const res = await fetch(`${API_URL}/api/process-meeting?title=${encodeURIComponent(title)}`, { method: 'POST' });
-            const meeting = await res.json();
-
-            modal.classList.add('hidden');
-            document.getElementById('file-info').classList.add('hidden');
-            bar.style.width = '0%';
-
-            fetchMeetings();
-            showDetail(meeting.id);
-            showToast("Meeting processed successfully!");
         }
 
         // --- Data Fetching ---

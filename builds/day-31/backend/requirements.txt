@@ -3,5 +3,6 @@ uvicorn
 python-dotenv
 pydantic
 python-multipart
+anthropic
 openai
 notion-client

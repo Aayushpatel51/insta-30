@@ -5,17 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MeetingFlow SaaS | Senior Architect Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
-        .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-slate-400 hover:text-white hover:bg-slate-800/40 cursor-pointer border border-transparent relative overflow-hidden; }
-        .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]; }
-        .sidebar-active::before { content: ''; @apply absolute left-0 top-0 bottom-0 w-1 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; @apply transition-colors duration-300; }
+
+        .dark body { background-color: #020617; color: #f8fafc; }
+        body { background-color: #f8fafc; color: #0f172a; }
+
+        .glass-panel { @apply backdrop-blur-xl transition-all duration-300; }
+        .dark .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+
+        .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer relative overflow-hidden; }
+        .dark .sidebar-item { @apply text-slate-400 hover:text-white hover:bg-slate-800/40; }
+        .sidebar-item { @apply text-slate-500 hover:text-slate-900 hover:bg-slate-100; }
+
+        .sidebar-active { @apply transition-all duration-500 ease-out; }
+        .dark .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]; }
+        .sidebar-active { @apply bg-blue-600 text-white shadow-lg shadow-blue-600/20; }
+
+        .dark .sidebar-active::before { content: ''; @apply absolute left-0 top-0 bottom-0 w-1 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]; }
+
         .sidebar-item i { @apply transition-all duration-300; }
-        .sidebar-item:hover i { @apply scale-110 text-blue-400/80; }
-        .card-hover { @apply transition-all hover:border-blue-500/30 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)]; }
+        .sidebar-item:hover i { @apply scale-110; }
+        .dark .sidebar-item:hover i { @apply text-blue-400/80; }
+
+        .card-hover { @apply transition-all cursor-pointer; }
+        .dark .card-hover:hover { @apply border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]; }
+        .card-hover:hover { @apply border-blue-500/30 shadow-xl shadow-blue-600/5; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
@@ -25,7 +60,7 @@
         .toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="flex min-h-screen transition-colors duration-300">
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
@@ -92,14 +127,21 @@
         <!-- Top Bar -->
         <div class="flex justify-between items-center mb-10">
             <div>
-                <h2 class="text-2xl font-bold">Architect Dashboard</h2>
-                <p class="text-sm text-slate-500">Welcome back. Your AI infrastructure is operating at <span class="text-green-400 font-medium">99.9% efficiency</span>.</p>
+                <h2 id="page-title" class="text-2xl font-bold dark:text-white text-slate-900">Architect Dashboard</h2>
+                <p id="page-subtitle" class="text-sm text-slate-500">Welcome back. Your AI infrastructure is operating at <span class="text-green-500 font-medium">99.9% efficiency</span>.</p>
             </div>
-            <button onclick="triggerUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
-                <i class="fa-solid fa-plus text-xs"></i> New MVP Meeting
-            </button>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-xl glass-panel text-slate-500 hover:text-blue-500 transition-colors">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <button onclick="triggerUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+                    <i class="fa-solid fa-plus text-xs"></i> New MVP Meeting
+                </button>
+            </div>
         </div>
 
+        <!-- Dashboard Content Container (Visible by default) -->
+        <div id="view-dashboard" class="page-view">
         <!-- Dashboard Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
@@ -132,14 +174,26 @@
             <!-- Detail View -->
             <div class="col-span-12 lg:col-span-7">
                 <div id="detail-view" class="h-full min-h-[400px] glass-panel rounded-3xl flex flex-col items-center justify-center p-10 text-center">
-                    <div class="w-20 h-20 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-6">
-                        <i class="fa-solid fa-file-waveform text-3xl text-slate-600"></i>
+                    <div class="w-20 h-20 rounded-full dark:bg-slate-900 bg-slate-100 border dark:border-slate-800 border-slate-200 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-file-waveform text-3xl text-slate-400"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Ready to Process</h3>
                     <p class="text-slate-500 text-sm max-w-xs mx-auto">Upload a meeting audio or start a live recording to see AI-driven architecture analysis.</p>
                 </div>
             </div>
 
+        </div>
+        </div>
+
+        <!-- Placeholder Content for other tabs -->
+        <div id="view-generic" class="page-view hidden">
+            <div class="glass-panel p-20 rounded-3xl text-center border-dashed border-2 border-slate-200 dark:border-slate-800">
+                 <div class="w-20 h-20 mx-auto mb-6 bg-blue-600/10 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-layer-group text-3xl text-blue-500"></i>
+                 </div>
+                 <h2 class="text-2xl font-bold mb-4">Module Initializing</h2>
+                 <p class="text-slate-500 max-w-md mx-auto">This ecosystem module is currently being optimized for your SaaS workflow. Check back shortly for deep integration analytics.</p>
+            </div>
         </div>
 
     </main>
@@ -174,23 +228,75 @@
     <script>
         const API_URL = "";
 
+        // --- Theme System ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+
         // --- UI Interactions ---
 
         function setSidebarActive(element) {
             const items = document.querySelectorAll('.sidebar-item');
+            const pageTitle = document.getElementById('page-title');
+            const pageSubtitle = document.getElementById('page-subtitle');
+            const dashboardView = document.getElementById('view-dashboard');
+            const genericView = document.getElementById('view-generic');
+
+            const tabName = element.innerText.trim();
+
             items.forEach(el => {
                 el.classList.remove('sidebar-active');
                 const icon = el.querySelector('i');
-                icon.classList.remove('text-blue-400');
-                icon.classList.add('text-slate-400');
+                if (icon) {
+                    icon.classList.remove('text-blue-400', 'text-white');
+                    icon.classList.add('text-slate-400');
+                }
             });
 
             element.classList.add('sidebar-active');
             const activeIcon = element.querySelector('i');
-            activeIcon.classList.remove('text-slate-400');
-            activeIcon.classList.add('text-blue-400');
+            if (activeIcon) {
+                activeIcon.classList.remove('text-slate-400');
+                activeIcon.classList.add('text-white');
+            }
 
-            showToast(`Switched to ${element.innerText.trim()}`);
+            // Dynamic Content Switching
+            pageTitle.innerText = `${tabName}`;
+
+            if (tabName === 'Dashboard') {
+                dashboardView.classList.remove('hidden');
+                genericView.classList.add('hidden');
+                pageSubtitle.innerHTML = 'Welcome back. Your AI infrastructure is operating at <span class="text-green-500 font-medium">99.9% efficiency</span>.';
+            } else {
+                dashboardView.classList.add('hidden');
+                genericView.classList.remove('hidden');
+                pageSubtitle.innerText = `Manage and optimize your ${tabName.toLowerCase()} ecosystem.`;
+            }
+
+            showToast(`Switched to ${tabName}`);
         }
 
         function showToast(message, type = 'success') {

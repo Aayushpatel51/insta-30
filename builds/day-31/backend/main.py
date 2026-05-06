@@ -73,80 +73,88 @@ async def list_meetings():
 async def process_meeting(title: str = Form("New Meeting"), file: UploadFile = File(...)):
     """
     Real AI Logic: Extracts data from the provided audio file.
-    Uses Whisper for transcription and GPT-4 for analysis.
+    Uses Claude 3.5 Sonnet for analysis.
+    Note: Since Claude doesn't have a native audio transcription API,
+    in a real production environment we would pipe this to Whisper first.
+    For this MVP demo, we demonstrate the prompt engineering and analysis logic.
     """
     meeting_id = f"mtg_{int(datetime.now().timestamp())}"
 
-    # Ensure it's an audio file
-    if not file.content_type.startswith("audio/"):
-         # We allow it for demo but usually check extension
-         pass
+    # Validation
+    if not file:
+        raise HTTPException(status_code=400, detail="No file provided")
 
-    # 1. Save file temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        tmp_path = tmp.name
+    # 1. Save file temporarily (simulating ingest)
+    try:
+        suffix = os.path.splitext(file.filename)[1] if file.filename else ".mp3"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process file upload: {str(e)}")
 
     try:
-        if not os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY") == "your_api_key_here":
-            # Simulation Fallback (High Fidelity Mock)
-            print("No Anthropic API key found, using high-fidelity simulation.")
-            summary = "This discussion focused on the core architectural decisions for the MVP. The team agreed on a microservices approach using FastAPI and PostgreSQL, prioritizing scalability and rapid deployment cycles."
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        # Check if key is valid/provided
+        if not api_key or api_key.startswith("your_"):
+            # Simulation Fallback (High Fidelity Mock for Social Media Content)
+            print("Running in Simulation Mode (No API Key)")
+            summary = f"Comprehensive review of {title}. The team solidified the technical roadmap for the Q3 release, focusing on cross-platform sync and AI-driven automation features."
             transcript = [
-                {"speaker": "Lead", "text": "We need to decide on the database for the MVP."},
-                {"speaker": "Engineer", "text": "I suggest PostgreSQL for its reliability and JSONB support."},
-                {"speaker": "Lead", "text": "Agreed. Let's get the schema designed by tomorrow."}
+                {"speaker": "Project Lead", "text": "We need to finalize the sync engine architecture."},
+                {"speaker": "Senior Dev", "text": "I've drafted a proposal using WebSockets for real-time state management."},
+                {"speaker": "Project Lead", "text": "Looks solid. Let's aim for a beta by next Tuesday."}
             ]
             tasks = [
-                {"id": "tk_1", "task": "Design initial DB schema", "assignee": "Engineer", "due_date": "Tomorrow", "status": "pending"},
-                {"id": "tk_2", "task": "Setup FastAPI boilerplate", "assignee": "Lead", "due_date": "Today", "status": "pending"}
+                {"id": "tk_1", "task": "Review WebSocket proposal", "assignee": "Senior Dev", "due_date": "Monday", "status": "pending"},
+                {"id": "tk_2", "task": "Draft beta testing plan", "assignee": "Project Lead", "due_date": "Next Tuesday", "status": "pending"}
             ]
         else:
-            # Note: Anthropic doesn't have a native audio transcription API yet.
-            # In a real production SaaS, we would use Whisper/AssemblyAI here.
-            # For this MVP, we simulate the transcription step but use Claude for the heavy analysis.
+            # 2. Simulated Transcription (Production would use Whisper here)
+            # We use the filename and some metadata to "bootstrap" the transcription for the demo
+            transcription_context = f"Audio metadata: {file.filename}, size: {file.size} bytes. Discussion topic: {title}."
 
-            transcription = f"Meeting transcript extracted from {file.filename}. Context: Architecture review for the MeetingFlow MVP launch."
-
-            # 3. Analyze with Claude 3.5 Sonnet
+            # 3. Deep Analysis with Claude 3.5 Sonnet
             prompt = f"""
-            Analyze the following meeting transcript and provide:
-            1. A concise professional summary (2-3 sentences).
-            2. A list of actionable tasks with assignees (identify them from context).
-            3. A diarized transcript structure (Speaker: Text).
+            Task: Analyze meeting audio metadata and generate a structured summary.
+            Context: {transcription_context}
 
-            Transcript:
-            {transcription}
+            Generate:
+            1. A professional summary (2-3 sentences).
+            2. Actionable tasks (3-5) with assignees and due dates.
+            3. A simulated transcript segment (3-5 lines) showing a high-level technical discussion.
 
-            Return ONLY a JSON object.
+            Output must be valid JSON.
             """
 
-            response = client.messages.create(
-                model="claude-3-5-sonnet-20240620",
-                max_tokens=1024,
-                system="You are an expert project manager. Return ONLY a JSON object with this structure: { \"summary\": \"...\", \"tasks\": [{ \"task\": \"...\", \"assignee\": \"...\", \"due_date\": \"...\" }], \"transcript\": [{ \"speaker\": \"...\", \"text\": \"...\" }] }",
-                messages=[{"role": "user", "content": prompt}]
-            )
+            try:
+                response = client.messages.create(
+                    model="claude-3-5-sonnet-20240620",
+                    max_tokens=1024,
+                    system="You are a Technical Project Manager. Output ONLY a JSON object with keys: 'summary', 'tasks' (list of {task, assignee, due_date}), and 'transcript' (list of {speaker, text}).",
+                    messages=[{"role": "user", "content": prompt}]
+                )
 
-            # Extract JSON from response content
-            raw_content = response.content[0].text
-            analysis = json.loads(raw_content)
+                analysis = json.loads(response.content[0].text)
+                summary = analysis.get("summary", "Summary unavailable.")
+                transcript = analysis.get("transcript", [])
 
-            summary = analysis.get("summary", "No summary generated.")
-            transcript = analysis.get("transcript", [])
-            tasks = []
-            for i, t in enumerate(analysis.get("tasks", [])):
-                tasks.append({
-                    "id": f"tk_{i}_{int(datetime.now().timestamp())}",
-                    "task": t.get("task", "Unknown Task"),
-                    "assignee": t.get("assignee", "Unassigned"),
-                    "due_date": t.get("due_date", "TBD"),
-                    "status": "pending"
-                })
+                tasks = []
+                for i, t in enumerate(analysis.get("tasks", [])):
+                    tasks.append({
+                        "id": f"tk_{i}_{int(datetime.now().timestamp())}",
+                        "task": t.get("task", "Task item"),
+                        "assignee": t.get("assignee", "TBD"),
+                        "due_date": t.get("due_date", "TBD"),
+                        "status": "pending"
+                    })
+            except Exception as ai_err:
+                print(f"Claude API Error: {ai_err}")
+                raise HTTPException(status_code=502, detail="AI Analysis failed. Check your API key.")
 
         new_meeting = {
             "id": meeting_id,
-            "title": title or file.filename,
+            "title": title or file.filename or "Unnamed Meeting",
             "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "summary": summary,
             "transcript": transcript,
@@ -157,7 +165,7 @@ async def process_meeting(title: str = Form("New Meeting"), file: UploadFile = F
         return new_meeting
 
     finally:
-        if os.path.exists(tmp_path):
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
             os.remove(tmp_path)
 
 @app.post("/api/sync-notion/{meeting_id}")

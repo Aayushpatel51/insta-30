@@ -62,10 +62,15 @@ async def list_meetings():
     return get_meetings()
 
 @app.post("/api/process-meeting")
-async def process_meeting(title: str = "New Meeting"):
+async def process_meeting(title: str = "New Meeting", file: Optional[UploadFile] = File(None)):
     """
     SaaS Logic: Simulates the AI pipeline for a new meeting upload.
+    Handles optional file upload to demonstrate real-world product capability.
     """
+    if file:
+        # In a real SaaS, we would save the file to S3/Storage here
+        print(f"Received file: {file.filename}, Size: {file.size}")
+
     meeting_id = f"mtg_{int(datetime.now().timestamp())}"
 
     # Mock AI Processing Result

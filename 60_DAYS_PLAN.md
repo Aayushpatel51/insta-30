@@ -1,4 +1,4 @@
-# 30-Day MVP Challenge: Senior Engineer Edition
+# 60-Day MVP Challenge: Senior Engineer Edition
 ## Strategy: "Build in Public" for Startups & Developers
 
 **Goal:** Demonstrate Senior-level expertise across 5 niches to attract entrepreneurs (MVP services) and developers (educational value).
@@ -36,6 +36,36 @@
 | 28 | Mobile | Subscription Manager | Carousel | "Where is your money going?" List of active subs. | Utility: Take control of recurring costs. |
 | 29 | Cyber | IAM Audit Tool | Reel | Scanning AWS roles and flagging "Admin" access. | Cloud: Hardening your cloud infrastructure. |
 | 30 | DevOps | Terraform to Diagram Generator | Carousel | "Code is the documentation." HCL code -> SVG diagram. | Knowledge: Instant visual architecture docs. |
+| 31 | AI/ML | Automated Meeting Minutes | Reel | Zoom recording -> AI Summary -> Task List sync. | Efficiency: Save 5 hours/week on meeting admin. |
+| 32 | Web | Internal Admin Panel Builder | Carousel | Drag-and-drop dashboard for DB operations. | Productivity: Let non-tech staff manage data safely. |
+| 33 | Mobile | Field Service Dispatch App | Reel | Map with real-time technician tracking & routing. | Operations: Optimize field team routes by 20%. |
+| 34 | Cyber | Shadow IT Discovery Tool | Carousel | Scanning network for unauthorized SaaS apps. | Security: Stop data leaks from unapproved tools. |
+| 35 | DevOps | Auto-scaling Fleet Optimizer | Reel | Graph showing servers shutting down during low load. | Cost: Zero-manual effort cloud cost saving. |
+| 36 | AI/ML | Sales Email Personalizer | Carousel | CRM Lead -> AI Research -> Unique Outreach Email. | Sales: 3x your cold email response rate. |
+| 37 | Web | Automated Refund Processor | Reel | Stripe Event -> Policy Check -> Instant Refund. | CS: Eliminate manual refund ticket handling. |
+| 38 | Mobile | Warehouse Inventory Scanner | Carousel | QR scan -> Real-time stock sync with ERP. | Logistics: 99% inventory accuracy, 0 paperwork. |
+| 39 | Cyber | Automated SSL/TLS Auditor | Reel | Dashboard showing expiring or weak certificates. | Uptime: Never let a site go down due to expired SSL. |
+| 40 | DevOps | Automated Incident Post-Mortem | Carousel | Incident logs -> AI Draft of Root Cause Analysis. | Reliability: Learn from outages in half the time. |
+| 41 | AI/ML | Smart Document Classifier | Reel | Folder of PDFs -> AI Sorts into Invoice/Legal/HR. | Admin: 10x faster document organization. |
+| 42 | Web | Customer Portal (Self-Service) | Carousel | Customer changing their own plan/billing info. | CS: Reduce support tickets by 40%. |
+| 43 | Mobile | Employee Shift Scheduler | Reel | Drag-and-drop calendar with conflict alerts. | HR: Zero-headache employee scheduling. |
+| 44 | Cyber | Vulnerability Patch Tracker | Carousel | CVE List -> Auto-matching to internal software versions. | Risk: Fix critical bugs before they are exploited. |
+| 45 | DevOps | Database Cleanup Bot | Reel | Removing 1TB of expired data logs automatically. | Storage: Automated DB maintenance & performance. |
+| 46 | AI/ML | Competitor Price Tracker | Carousel | Scraping competitor prices -> Dynamic pricing logic. | Profit: Stay competitive without manual checking. |
+| 47 | Web | Automated Content Translator | Reel | Blog Post -> 10 Languages with localized SEO tags. | Growth: Global reach with one-click translation. |
+| 48 | Mobile | Asset Tracking (RFID/QR) | Carousel | Tracking expensive equipment across office locations. | Finance: No more lost or stolen business assets. |
+| 49 | Cyber | API Token Leak Scanner | Reel | Scanning public repos for leaked company keys. | Security: Prevent account takeovers in seconds. |
+| 50 | DevOps | CI/CD Build Optimizer | Carousel | Analysis of build steps -> Parallelizing tasks. | DevEx: 50% faster build times for developers. |
+| 51 | AI/ML | Fraud Detection for Invoices | Reel | Analyzing invoice patterns to flag duplicates/scams. | Finance: Save thousands by spotting fake invoices. |
+| 52 | Web | Employee Onboarding Portal | Carousel | Interactive checklist for new hires + auto-IT setup. | HR: Reduce HR onboarding time by 70%. |
+| 53 | Mobile | Offline-First Sales App | Reel | Catalog & Ordering working in "Airplane Mode". | Sales: Close deals anywhere, even without Wi-Fi. |
+| 54 | Cyber | Endpoint Security Reporter | Carousel | Real-time status of all company laptop encryptions. | Compliance: Verified security for remote teams. |
+| 55 | DevOps | Automated Dependency Updater | Reel | Bot creating PRs for outdated libraries with tests. | Maintenance: Keep tech debt low automatically. |
+| 56 | AI/ML | Customer Feedback Sentiment Hub | Carousel | Scraping Reviews -> Sentiment Trend Analysis. | Product: Build what users actually want. |
+| 57 | Web | Status Page (Auto-Updating) | Reel | System health checks -> Public status updates. | Trust: Transparency without manual intervention. |
+| 58 | Mobile | Expense Approval Workflow | Carousel | Manager swiping "Approve" on employee expenses. | Finance: Streamlined approvals, no more email chains. |
+| 59 | Cyber | Dynamic IP Whitelisting | Reel | Temporary VPN-style access for remote contractors. | Security: Granular access without static IP pain. |
+| 60 | DevOps | Environment "Off-Switch" | Carousel | Auto-killing dev environments after 6 PM. | Cost: Stop paying for idle dev resources overnight. |
 
 ---
 

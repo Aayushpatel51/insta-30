@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeetingFlow SaaS | Senior Architect Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; @apply transition-colors duration-300; }
+
+        .dark body { background-color: #020617; color: #f8fafc; }
+        body { background-color: #f8fafc; color: #0f172a; }
+
+        .glass-panel { @apply backdrop-blur-xl transition-all duration-300; }
+        .dark .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .glass-panel { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+
+        .sidebar-item { @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer relative overflow-hidden; }
+        .dark .sidebar-item { @apply text-slate-400 hover:text-white hover:bg-slate-800/40; }
+        .sidebar-item { @apply text-slate-500 hover:text-slate-900 hover:bg-slate-100; }
+
+        .sidebar-active { @apply transition-all duration-500 ease-out; }
+        .dark .sidebar-active { @apply bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]; }
+        .sidebar-active { @apply bg-blue-600 text-white shadow-lg shadow-blue-600/20; }
+
+        .dark .sidebar-active::before { content: ''; @apply absolute left-0 top-0 bottom-0 w-1 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]; }
+
+        .sidebar-item i { @apply transition-all duration-300; }
+        .sidebar-item:hover i { @apply scale-110; }
+        .dark .sidebar-item:hover i { @apply text-blue-400/80; }
+
+        .card-hover { @apply transition-all cursor-pointer; }
+        .dark .card-hover:hover { @apply border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]; }
+        .card-hover:hover { @apply border-blue-500/30 shadow-xl shadow-blue-600/5; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+        /* Toast Styles */
+        #toast-container { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-col-reverse; gap: 0.5rem; }
+        .toast { background: #1e293b; border: 1px solid #334155; padding: 0.75rem 1.5rem; rounded: 0.75rem; color: #f8fafc; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: translateY(100%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="flex min-h-screen transition-colors duration-300">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="audio-upload" class="hidden" accept="audio/*">
+
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-slate-800 p-6 flex flex-col gap-8 hidden md:flex">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-bolt text-white"></i>
+            </div>
+            <h1 class="text-lg font-bold tracking-tight">Meeting<span class="text-blue-500">Flow</span></h1>
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-4">Main Menu</p>
+                <nav id="sidebar-nav" class="flex flex-col gap-1">
+                    <div onclick="setSidebarActive(this)" class="sidebar-item sidebar-active"><i class="fa-solid fa-house-chimney text-sm text-blue-400"></i> Dashboard</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-folder-open text-sm text-slate-400"></i> Projects</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-plug text-sm text-slate-400"></i> Integrations</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-chart-line text-sm text-slate-400"></i> Analytics</div>
+                </nav>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 ml-4">Workspace</p>
+                <nav class="flex flex-col gap-1">
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-users text-sm text-slate-400"></i> Team</div>
+                    <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-database text-sm text-slate-400"></i> Databases</div>
+                </nav>
+            </div>
+        </div>
+
+        <div class="mt-auto pt-8 border-t border-slate-800">
+            <!-- Resource Usage Widget -->
+            <div class="mb-6 p-4 rounded-2xl bg-slate-900/50 border border-slate-800/50">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AI Credits</span>
+                    <span class="text-[10px] font-bold text-blue-400">84%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-2">
+                    <div class="h-full bg-blue-500 w-[84%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.4)]"></div>
+                </div>
+                <p class="text-[9px] text-slate-500 leading-tight">Next reset in <span class="text-slate-300">12 days</span></p>
+            </div>
+
+            <div class="flex items-center gap-3 mb-6 p-2 rounded-xl hover:bg-slate-800/30 transition-colors cursor-pointer group">
+                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-blue-400 group-hover:border-blue-500/50 transition-colors">SE</div>
+                <div>
+                    <p class="text-sm font-semibold group-hover:text-blue-400 transition-colors">Senior Engineer</p>
+                    <p class="text-[10px] text-slate-500">PRO PLAN</p>
+                </div>
+            </div>
+            <div onclick="setSidebarActive(this)" class="sidebar-item"><i class="fa-solid fa-gear text-sm"></i> Settings</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-10">
+
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h2 id="page-title" class="text-2xl font-bold dark:text-white text-slate-900">Architect Dashboard</h2>
+                <p id="page-subtitle" class="text-sm text-slate-500">Welcome back. Your AI infrastructure is operating at <span class="text-green-500 font-medium">99.9% efficiency</span>.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-xl glass-panel text-slate-500 hover:text-blue-500 transition-colors">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <button onclick="triggerUpload()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+                    <i class="fa-solid fa-plus text-xs"></i> New MVP Meeting
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Content Container (Visible by default) -->
+        <div id="view-dashboard" class="page-view">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest text-center md:text-left">Total Meetings</span>
+                <span id="stat-total" class="text-3xl font-bold text-center md:text-left">0</span>
+            </div>
+            <div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest text-center md:text-left">Hours Saved</span>
+                <span class="text-3xl font-bold text-blue-400 text-center md:text-left">142.5</span>
+            </div>
+            <div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest text-center md:text-left">Tasks Sync'd</span>
+                <span class="text-3xl font-bold text-indigo-400 text-center md:text-left">894</span>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="dashboard-content" class="grid grid-cols-12 gap-8">
+
+            <!-- History List -->
+            <div class="col-span-12 lg:col-span-5">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> Recent Activity
+                </h3>
+                <div id="meeting-list" class="flex flex-col gap-4">
+                    <div class="text-slate-500 text-sm italic p-4 border border-dashed border-slate-800 rounded-xl text-center">No meetings processed yet. Start your first one!</div>
+                </div>
+            </div>
+
+            <!-- Detail View -->
+            <div class="col-span-12 lg:col-span-7">
+                <div id="detail-view" class="h-full min-h-[400px] glass-panel rounded-3xl flex flex-col items-center justify-center p-10 text-center">
+                    <div class="w-20 h-20 rounded-full dark:bg-slate-900 bg-slate-100 border dark:border-slate-800 border-slate-200 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-file-waveform text-3xl text-slate-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Ready to Process</h3>
+                    <p class="text-slate-500 text-sm max-w-xs mx-auto">Upload a meeting audio or start a live recording to see AI-driven architecture analysis.</p>
+                </div>
+            </div>
+
+        </div>
+        </div>
+
+        <!-- Placeholder Content for other tabs -->
+        <div id="view-generic" class="page-view hidden">
+            <div class="glass-panel p-20 rounded-3xl text-center border-dashed border-2 border-slate-200 dark:border-slate-800">
+                 <div class="w-20 h-20 mx-auto mb-6 bg-blue-600/10 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-layer-group text-3xl text-blue-500"></i>
+                 </div>
+                 <h2 class="text-2xl font-bold mb-4">Module Initializing</h2>
+                 <p class="text-slate-500 max-w-md mx-auto">This ecosystem module is currently being optimized for your SaaS workflow. Check back shortly for deep integration analytics.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Processing Simulation -->
+    <div id="processing-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="glass-panel p-10 rounded-3xl max-w-md w-full text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-slate-800">
+                <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div id="file-info" class="mb-6 p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl text-left hidden">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-file-audio text-blue-400 text-xl"></i>
+                    <div class="overflow-hidden">
+                        <p id="file-name" class="text-xs font-bold text-blue-100 truncate">meeting.mp3</p>
+                        <p id="file-size" class="text-[10px] text-slate-500">12.4 MB • READY</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative w-24 h-24 mx-auto mb-8">
+                <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+                <i class="fa-solid fa-microchip absolute inset-0 flex items-center justify-center text-3xl text-blue-400"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">AI Architect Engine</h3>
+            <p id="processing-status" class="text-slate-400 text-sm">Initializing pipeline...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "";
+
+        // --- Theme System ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+
+        // --- UI Interactions ---
+
+        function setSidebarActive(element) {
+            const items = document.querySelectorAll('.sidebar-item');
+            const pageTitle = document.getElementById('page-title');
+            const pageSubtitle = document.getElementById('page-subtitle');
+            const dashboardView = document.getElementById('view-dashboard');
+            const genericView = document.getElementById('view-generic');
+
+            const tabName = element.innerText.trim();
+
+            items.forEach(el => {
+                el.classList.remove('sidebar-active');
+                const icon = el.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('text-blue-400', 'text-white');
+                    icon.classList.add('text-slate-400');
+                }
+            });
+
+            element.classList.add('sidebar-active');
+            const activeIcon = element.querySelector('i');
+            if (activeIcon) {
+                activeIcon.classList.remove('text-slate-400');
+                activeIcon.classList.add('text-white');
+            }
+
+            // Dynamic Content Switching
+            pageTitle.innerText = `${tabName}`;
+
+            if (tabName === 'Dashboard') {
+                dashboardView.classList.remove('hidden');
+                genericView.classList.add('hidden');
+                pageSubtitle.innerHTML = 'Welcome back. Your AI infrastructure is operating at <span class="text-green-500 font-medium">99.9% efficiency</span>.';
+            } else {
+                dashboardView.classList.add('hidden');
+                genericView.classList.remove('hidden');
+                pageSubtitle.innerText = `Manage and optimize your ${tabName.toLowerCase()} ecosystem.`;
+            }
+
+            showToast(`Switched to ${tabName}`);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            const icon = type === 'success' ? 'fa-circle-check text-green-400' : 'fa-circle-exclamation text-amber-400';
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Processing Flow ---
+
+        function triggerUpload() {
+            document.getElementById('audio-upload').click();
+        }
+
+        document.getElementById('audio-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show File Info
+            document.getElementById('file-name').innerText = file.name;
+            document.getElementById('file-size').innerText = `${(file.size / (1024 * 1024)).toFixed(1)} MB • READY FOR ANALYSIS`;
+            document.getElementById('file-info').classList.remove('hidden');
+
+            processNewMeeting(file);
+        });
+
+        async function processNewMeeting(file) {
+            const modal = document.getElementById('processing-modal');
+            const status = document.getElementById('processing-status');
+            const bar = document.getElementById('progress-bar');
+            modal.classList.remove('hidden');
+
+            const steps = [
+                { msg: "Uploading audio stream...", progress: 25 },
+                { msg: "Preprocessing audio signals...", progress: 40 },
+                { msg: "Running Local Transcription...", progress: 60 },
+                { msg: "Analyzing with Claude 3.5 Sonnet...", progress: 85 },
+                { msg: "Finalizing Report...", progress: 100 }
+            ];
+
+            // Start a slower background animation for the bar
+            let currentProgress = 0;
+            const progressInterval = setInterval(() => {
+                if (currentProgress < 95) {
+                    currentProgress += 1;
+                    bar.style.width = `${currentProgress}%`;
+                }
+            }, 200);
+
+            // Display messages
+            (async () => {
+                for (let step of steps) {
+                    status.innerText = step.msg;
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+            })();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name);
+
+            try {
+                const res = await fetch(`${API_URL}/api/process-meeting`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Processing failed");
+
+                const meeting = await res.json();
+
+                clearInterval(progressInterval);
+                bar.style.width = '100%';
+                status.innerText = "Processing Complete!";
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    document.getElementById('file-info').classList.add('hidden');
+                    bar.style.width = '0%';
+                    fetchMeetings();
+                    showDetail(meeting.id);
+                    showToast("SaaS Analysis Complete!");
+                }, 800);
+
+            } catch (err) {
+                clearInterval(progressInterval);
+                modal.classList.add('hidden');
+                showToast("Error processing audio.", "error");
+                console.error(err);
+            }
+        }
+
+        // --- Data Fetching ---
+
+        async function fetchMeetings() {
+            const res = await fetch(`${API_URL}/api/meetings`);
+            const data = await res.json();
+            renderMeetingList(data);
+            document.getElementById('stat-total').innerText = data.length;
+        }
+
+        function renderMeetingList(meetings) {
+            const list = document.getElementById('meeting-list');
+            if (meetings.length === 0) return;
+
+            list.innerHTML = meetings.map(m => `
+                <div onclick="showDetail('${m.id}')" class="glass-panel p-4 rounded-xl cursor-pointer card-hover animate-fade-in flex justify-between items-center group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center">
+                            <i class="fa-solid fa-file-audio text-xs text-blue-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm group-hover:text-blue-400 transition-colors truncate max-w-[180px]">${m.title}</h4>
+                            <p class="text-[9px] text-slate-500 font-bold mt-0.5 uppercase tracking-wider">${m.date}</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-700 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            `).join('');
+        }
+
+        async function showDetail(id) {
+            const res = await fetch(`${API_URL}/api/meetings`);
+            const meetings = await res.json();
+            const m = meetings.find(x => x.id === id);
+
+            const detailView = document.getElementById('detail-view');
+            detailView.classList.remove('items-center', 'justify-center', 'text-center');
+            detailView.innerHTML = `
+                <div class="animate-fade-in flex flex-col h-full w-full">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h3 class="text-2xl font-bold truncate max-w-md">${m.title}</h3>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">Analyzed by Claude 3.5 Sonnet | Project Logic Active</p>
+                        </div>
+                        <button onclick="syncNotion('${m.id}')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/10">
+                            <i class="fa-solid fa-share-nodes"></i> Sync to Notion
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        <section>
+                            <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Summary Report</h4>
+                            <p class="text-sm text-slate-300 leading-relaxed font-medium">${m.summary}</p>
+
+                            <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4 mt-8">Tasks Extracted</h4>
+                            <div class="flex flex-col gap-2">
+                                ${m.tasks.map(t => `
+                                    <div class="p-3 bg-slate-900/40 border border-slate-800/50 rounded-xl flex items-center justify-between group hover:border-blue-500/30 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-check-circle text-blue-500/50 group-hover:text-blue-500 transition-colors"></i>
+                                            <span class="text-[11px] font-semibold text-slate-200">${t.task}</span>
+                                        </div>
+                                        <span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-1 rounded font-bold uppercase tracking-wider">${t.assignee}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </section>
+                        <section>
+                            <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Transcript Deep-Dive</h4>
+                            <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                ${m.transcript.map(tr => `
+                                    <div class="text-[11px] leading-relaxed">
+                                        <span class="font-bold text-blue-400/80">${tr.speaker}:</span>
+                                        <span class="text-slate-400 ml-1">${tr.text}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function syncNotion(id) {
+            const res = await fetch(`${API_URL}/api/sync-notion/${id}`, { method: 'POST' });
+            const data = await res.json();
+            showToast(data.message);
+        }
+
+        // Initial Load
+        fetchMeetings();
+    </script>
+</body>
+</html>
